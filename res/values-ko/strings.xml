@@ -318,12 +318,12 @@
     <string name="cal_import_error_date_msg">지정된 날짜를 이해할수없음 : %s</string>
     <string name="cal_pick_ics">가져올 파일을 선택</string>
     <string name="view_settings">설정 보기</string>
-    <string name="preferences_month_view_portrait">월 보기 (세로로)</string>
-    <string name="preferences_month_view_landscape">월 보기 (가로로)</string>
+    <string name="preferences_month_view_portrait">세로보기 모드(길게)</string>
+    <string name="preferences_month_view_landscape">가로보기 모드(넓게)</string>
     <string name="view_details">세부사항 보기</string>
-    <string name="display_time">디스플레이 시간</string>
-    <string name="display_location">디스플레이 위치</string>
-    <string name="show_time_no">시간 표시 안 함</string>
+    <string name="display_time">시간표시</string>
+    <string name="display_location">장소표시</string>
+    <string name="show_time_no">시간표시 안함</string>
     <string name="show_time_start">오직 시작시간</string>
     <string name="show_time_start_end">시작시간과 끝나는시간</string>
     <string name="show_time_start_end_below">이벤트보다 낮은 시작 및 종료 시간</string>
