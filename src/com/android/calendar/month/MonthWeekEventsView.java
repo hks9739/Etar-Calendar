@@ -63,14 +63,14 @@ public class MonthWeekEventsView extends SimpleWeekView {
 
     public static final String VIEW_PARAMS_ORIENTATION = "orientation";
     public static final String VIEW_PARAMS_ANIMATE_TODAY = "animate_today";
-    private static final String TAG = "MonthView";
+    private static final String TAG = "MonthWeekEventsView";
     private static final boolean DEBUG_LAYOUT = false;
     private static final int mClickedAlpha = 128;
     protected static StringBuilder mStringBuilder = new StringBuilder(50);
     // TODO recreate formatter when locale changes
     protected static Formatter mFormatter = new Formatter(mStringBuilder, Locale.getDefault());
     /* NOTE: these are not constants, and may be multiplied by a scale factor */
-    private static int mTextSizeMonthNumber = 28;
+    private static int mTextSizeMonthNumber = 28; // integers.xml의 text_size_month_number 사용
     private static int mTextSizeLunar = 10;
     private static int mTextSizeEvent = 12;
     private static int mTextSizeEventTitle = 14;
@@ -105,7 +105,8 @@ public class MonthWeekEventsView extends SimpleWeekView {
     private static boolean mInitialized = false;
     private static boolean mShowDetailsInMonth;
     private final TodayAnimatorListener mAnimatorListener = new TodayAnimatorListener();
-    protected Time mToday = new Time();
+    //protected Time mToday = new Time();
+    protected Time mTodayTime = new Time();
     protected boolean mHasToday = false;
     protected int mTodayIndex = -1;
     protected int mOrientation = Configuration.ORIENTATION_LANDSCAPE;
@@ -139,6 +140,7 @@ public class MonthWeekEventsView extends SimpleWeekView {
     protected int mMonthNumColor;
     protected int mMonthNumOtherColor;
     protected int mMonthNumTodayColor;
+    protected int mMonthNumHolidayColor; // HKS - 휴일 날짜
     protected int mMonthEventColor;
     protected int mMonthDeclinedEventColor;
     protected int mMonthDeclinedExtrasColor;
@@ -229,10 +231,12 @@ public class MonthWeekEventsView extends SimpleWeekView {
     protected void loadColors(Context context) {
         Resources res = context.getResources();
 
+        // values/colors.xml 내에 존재
         mMonthWeekNumColor = DynamicTheme.getColor(context, "month_week_num_color");
         mMonthNumColor = DynamicTheme.getColor(context, "month_day_number");
         mMonthNumOtherColor = DynamicTheme.getColor(context, "month_day_number_other");
         mMonthNumTodayColor = DynamicTheme.getColor(context, "month_today_number");
+        mMonthNumHolidayColor = DynamicTheme.getColor(context, "month_day_number_holiday");
         mMonthEventColor = DynamicTheme.getColor(context, "month_event_color");
         mMonthDeclinedEventColor = DynamicTheme.getColor(context, "agenda_item_declined_color");
         mMonthDeclinedExtrasColor = DynamicTheme.getColor(context, "agenda_item_where_declined_text_color");
@@ -316,8 +320,9 @@ public class MonthWeekEventsView extends SimpleWeekView {
         mMonthNumAscentHeight = (int) (-mMonthNumPaint.ascent() + 0.5f);
         mMonthNumHeight = (int) (mMonthNumPaint.descent() - mMonthNumPaint.ascent() + 0.5f);
 
+        // 일정 각 항목 내용 출력 포맷
         mEventPaint = new TextPaint();
-        mEventPaint.setFakeBoldText(true);
+        mEventPaint.setFakeBoldText(false); // HKS - was true
         mEventPaint.setAntiAlias(true);
         mEventPaint.setTextSize(mTextSizeEventTitle);
         mEventPaint.setColor(mMonthEventColor);
@@ -404,7 +409,7 @@ public class MonthWeekEventsView extends SimpleWeekView {
         }
 
         updateToday(tz);
-        mNumCells = mNumDays + 1;
+        //mNumCells = mNumDays + 1; // 여기서 mNumCells를 +1 한다 ???
 
         if (params.containsKey(VIEW_PARAMS_ANIMATE_TODAY) && mHasToday) {
             synchronized (mAnimatorListener) {
@@ -428,10 +433,10 @@ public class MonthWeekEventsView extends SimpleWeekView {
      * @param tz - time zone
      */
     public boolean updateToday(String tz) {
-        mToday.timezone = tz;
-        mToday.setToNow();
-        mToday.normalize(true);
-        int julianToday = Time.getJulianDay(mToday.toMillis(false), mToday.gmtoff);
+        mTodayTime.timezone = tz;
+        mTodayTime.setToNow();
+        mTodayTime.normalize(true);
+        int julianToday = Time.getJulianDay(mTodayTime.toMillis(false), mTodayTime.gmtoff);
         if (julianToday >= mFirstJulianDay && julianToday < mFirstJulianDay + mNumDays) {
             mHasToday = true;
             mTodayIndex = julianToday - mFirstJulianDay;
@@ -584,54 +589,64 @@ public class MonthWeekEventsView extends SimpleWeekView {
     @Override
     protected void drawWeekNums(Canvas canvas) {
         int y;
-
         int i = 0;
         int offset = -1;
         int todayIndex = mTodayIndex;
         int x = 0;
-        int numCount = mNumDays;
+        boolean showLunar = LunarUtils.showLunar(getContext());
+        Time time = null;
+
+        Log.i(TAG, "mToday=" + mToday + ", mTodayIndex=" + mTodayIndex + ", mFirstJulianDay=" + mFirstJulianDay);
+
         if (mShowWeekNum) {
             x = mSidePaddingWeekNumber + mPadding;
             y = mWeekNumAscentHeight + mTopPaddingWeekNumber;
             canvas.drawText(mDayNumbers[0], x, y, mWeekNumPaint);
-            numCount++;
             i++;
             todayIndex++;
             offset++;
-
         }
 
         y = mMonthNumAscentHeight + mTopPaddingMonthNumber;
 
-        boolean isFocusMonth = mFocusDay[i];
+
+        if (showLunar) {
+            // Get the julian monday used to show the lunar info.
+            int julianMonday = Utils.getJulianMondayFromWeeksSinceEpoch(mWeek);
+            time = new Time(mTimeZone);
+            time.setJulianDay(julianMonday);
+        }
+
+        boolean isFocusMonth = false;
         boolean isBold = false;
-        mMonthNumPaint.setColor(isFocusMonth ? mMonthNumColor : mMonthNumOtherColor);
+        int weekday = mFirstWeekDay;
 
-        // Get the julian monday used to show the lunar info.
-        int julianMonday = Utils.getJulianMondayFromWeeksSinceEpoch(mWeek);
-        Time time = new Time(mTimeZone);
-        time.setJulianDay(julianMonday);
-
-        for (; i < numCount; i++) {
+        boolean resetMonthNumColor = true;
+        for (; i < mNumCells; i++) {
             if (mHasToday && todayIndex == i) {
+                // 오늘 이벤트 출력 포맷 설정
                 mMonthNumPaint.setColor(mMonthNumTodayColor);
                 mMonthNumPaint.setFakeBoldText(isBold = true);
-                if (i + 1 < numCount) {
-                    // Make sure the color will be set back on the next
-                    // iteration
-                    isFocusMonth = !mFocusDay[i + 1];
-                }
-            } else if (mFocusDay[i] != isFocusMonth) {
+                resetMonthNumColor = true;
+            } else if (resetMonthNumColor || mFocusDay[i] != isFocusMonth) {
                 isFocusMonth = mFocusDay[i];
                 mMonthNumPaint.setColor(isFocusMonth ? mMonthNumColor : mMonthNumOtherColor);
             }
+
+            // HKS - 일요일인 경우 처리
+            if (weekday == Time.SUNDAY) {
+                mMonthNumPaint.setColor(mMonthNumHolidayColor);
+                resetMonthNumColor = true;
+            }
+            weekday = (weekday + 1) % 7;
+
             x = computeDayLeftPosition(i - offset) - (mSidePaddingMonthNumber);
             canvas.drawText(mDayNumbers[i], x, y, mMonthNumPaint);
             if (isBold) {
                 mMonthNumPaint.setFakeBoldText(isBold = false);
             }
 
-            if (LunarUtils.showLunar(getContext())) {
+            if (showLunar) {
                 // adjust the year and month
                 int year = time.year;
                 int month = time.month;

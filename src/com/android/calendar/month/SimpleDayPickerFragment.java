@@ -77,7 +77,7 @@ public class SimpleDayPickerFragment extends ListFragment implements OnScrollLis
     protected int mSundayColor = 0;
     protected int mDayNameColor = 0;
     // You can override these numbers to get a different appearance
-    protected int mNumWeeks = 6;
+    protected int mNumWeeks = 5; // HKS - 한달(5주)만 표시하도록 변경. was 6;
     protected boolean mShowWeekNumber = false;
     protected int mDaysPerWeek = 7;
     // These affect the scroll speed and feel

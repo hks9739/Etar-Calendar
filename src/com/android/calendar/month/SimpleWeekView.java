@@ -126,6 +126,8 @@ public class SimpleWeekView extends View {
     protected int mFirstJulianDay = -1;
     // The month of the first day in this week
     protected int mFirstMonth = -1;
+    // HKS - 첫번째 요일
+    protected int mFirstWeekDay = -1;
     // The month of the last day in this week
     protected int mLastMonth = -1;
     // The position of this week, equivalent to weeks since the week of Jan 1st,
@@ -244,6 +246,7 @@ public class SimpleWeekView extends View {
         mFocusDay = new boolean[mNumCells];
         mOddMonth = new boolean[mNumCells];
         mWeek = params.get(VIEW_PARAMS_WEEK);
+
         int julianMonday = Utils.getJulianMondayFromWeeksSinceEpoch(mWeek);
         Time time = new Time(tz);
         time.setJulianDay(julianMonday);
@@ -273,6 +276,7 @@ public class SimpleWeekView extends View {
 
         mFirstJulianDay = Time.getJulianDay(time.toMillis(true), time.gmtoff);
         mFirstMonth = time.month;
+        mFirstWeekDay = time.weekDay;
 
         // Figure out what day today is
         Time today = new Time(tz);

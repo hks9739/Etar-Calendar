@@ -80,6 +80,7 @@
     <color name="month_day_number">#FF555555</color>
     <color name="month_mini_day_number">#FF000000</color>
     <color name="month_day_number_other">#FF999999</color>
+    <color name="month_day_number_holiday">#E20000</color>
     <color name="month_week_num_color">#41c3b1</color>
     <color name="month_day_names_color">#757575</color>
     <color name="month_today_number">#FF555555</color>

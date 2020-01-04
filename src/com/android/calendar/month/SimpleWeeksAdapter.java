@@ -77,7 +77,7 @@ public class SimpleWeeksAdapter extends BaseAdapter implements OnTouchListener {
 
     protected static final int WEEK_COUNT = CalendarController.MAX_CALENDAR_WEEK
             - CalendarController.MIN_CALENDAR_WEEK;
-    protected static int DEFAULT_NUM_WEEKS = 6;
+    protected static int DEFAULT_NUM_WEEKS = 5; // HKS - 한달(5주)만 표시하도록 변경. was 6;
     protected static int DEFAULT_MONTH_FOCUS = 0;
     protected static int DEFAULT_DAYS_PER_WEEK = 7;
     protected static int DEFAULT_WEEK_HEIGHT = 32;
@@ -137,7 +137,7 @@ public class SimpleWeeksAdapter extends BaseAdapter implements OnTouchListener {
         if (params.containsKey(WEEK_PARAMS_FOCUS_MONTH)) {
             mFocusMonth = params.get(WEEK_PARAMS_FOCUS_MONTH);
         }
-        if (params.containsKey(WEEK_PARAMS_FOCUS_MONTH)) {
+        if (params.containsKey(WEEK_PARAMS_NUM_WEEKS)) {
             mNumWeeks = params.get(WEEK_PARAMS_NUM_WEEKS);
         }
         if (params.containsKey(WEEK_PARAMS_SHOW_WEEK)) {
